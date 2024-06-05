@@ -4,6 +4,14 @@ networks:
   proxy:
     external: true
 
+secrets:
+  postgres:
+    file: ${nextcloud}/secrets/postgres-password
+  postgres-snappymail:
+    file: ${nextcloud}/secrets/postgres-snappymail-password
+  code:
+    file: ${nextcloud}/secrets/code-password
+
 services:
   nextcloud-postgres:
     image: postgres:14
@@ -19,6 +27,8 @@ services:
       - POSTGRES_DB=nextcloud
     networks:
       - default
+    secrets:
+      - postgres
 
   nextcloud-postgres-snappymail:
     image: postgres:14
@@ -34,13 +44,15 @@ services:
       - POSTGRES_DB=nextcloud-snappymail
     networks:
       - default
+    secrets:
+      - postgres-snappymail
 
   nextcloud-redis:
     image: redis:latest
     container_name: nextcloud-redis
     hostname: nextcloud-redis
     restart: always
-    command: ["--databases", "1", "--maxmemory-policy", "allkeys-lru", "--maxmemory", "512mb"]
+    command: ["--databases", "1", "--maxmemory-policy", "allkeys-lru", "--maxmemory", "${memory}"]
     volumes:
       - ${nextcloud}/nextcloud-redis:/data
     environment:
@@ -58,14 +70,16 @@ services:
     environment:
       - 'TZ=Asia/Jakarta'
       - 'username=admin'
-      - 'password=uCvGgHmq0+1DnLnLuyPXX8fEyxld2kzFNixew+ipQbA='
+      - 'password=${code-password}'
       - 'aliasgroup1=https://${URL}:443'
       - 'dictionaries=id'
       - 'extra_params=--o:ssl.enable=false --o:ssl.termination=true --o:mount_jail_tree=false --o:logging.level=warning --o:home_mode.enable=true --o:remote_font_config.url=https://${URL}/apps/richdocuments/settings/fonts.json'
     networks:
       - proxy
     dns:
-      - 192.168.100.11
+      - ${IP}
+    secrets:
+      - code
 
   nextcloud-server:
     image: marcus1pierce/nextcloud:28-fpm-arm64
@@ -95,7 +109,9 @@ services:
       - OVERWRITEPROTOCOL=https
       - REDIS_HOST=nextcloud-redis
     dns:
-      - 192.168.100.11
+      - ${IP}
+    secrets:
+      - postgres
 
   nextcloud-cron:
     image: marcus1pierce/nextcloud:28-fpm-arm64
@@ -137,7 +153,7 @@ services:
       - ${nextcloud}/server:/var/www/html
       - ${nextcloud}/nextcloud_data:/var/www/html/data
     dns:
-      - 192.168.100.11
+      - ${IP}
 
   nextcloud-imaginary:
     image: nextcloud/aio-imaginary:latest
