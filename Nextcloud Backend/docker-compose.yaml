@@ -1,0 +1,72 @@
+networks:
+  proxy:
+    external: true
+
+secrets:
+  coturn:
+    file: ${nextcloud_backend}/secrets/coturn_password
+  
+services:
+  nextcloud-coturn:
+    image: coturn/coturn:latest
+    container_name: nextcloud-coturn
+    restart: unless-stopped
+    network_mode: host
+    volumes:
+      - /tmp/coturn:/var/lib/coturn
+    #
+    # Update command parameters as necessary.
+    #
+    # See https://github.com/coturn/coturn/blob/master/README.turnserver for
+    # available options.
+    command:
+      - "--listening-port"
+      - "3478"
+      - "--tls-listening-port"
+      - "5349"
+      - "--listening-ip"
+      - "${IP}"
+      - "--realm"
+      - "turn.fanure.com"
+      - "--static-auth-secret"
+      - "${coturn-password}"
+      - "--no-stdout-log"
+      - "--log-file"
+      - "stdout"
+      - "--stale-nonce"
+      - "--use-auth-secret"
+      - "--lt-cred-mech"
+      - "--fingerprint"
+      - "--no-software-attribute"
+      - "--no-multicast-peers"
+      - "--verbose"
+
+  nextcloud-janus:
+    image: marcus1pierce/janus:1.2.2-amd64
+    container_name: nextcloud-janus
+    command: ["janus", "--full-trickle", "--config=/etc/janus.conf"]
+    network_mode: host
+    restart: unless-stopped
+    volumes:
+      - ${nextcloud_backend}/janus.conf:/etc/janus.conf
+
+  nextcloud-nats:
+    image: nats:2
+    container_name: nextcloud-nats
+    volumes:
+      - ${nextcloud_backend}/gnatsd.conf:/config/gnatsd.conf
+    command: ["-c", "/config/gnatsd.conf"]
+    network_mode: host
+    restart: unless-stopped
+
+  nextcloud-signaling:
+    image: strukturag/nextcloud-spreed-signaling:latest
+    container_name: nextcloud-signaling
+    restart: unless-stopped
+    network_mode: host
+    depends_on:
+      - nextcloud-nats
+      - nextcloud-janus
+      - nextcloud-coturn
+    volumes:
+      - ${nextcloud_backend}/server.conf:/config/server.conf:ro
