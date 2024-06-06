@@ -1,0 +1,44 @@
+networks:
+  proxy:
+    driver: bridge
+    name: proxy
+    ipam:
+      config:
+        - subnet: 10.1.1.0/24
+          gateway: 10.1.1.1
+
+services:
+  proxy:
+    image: caddy:2
+    container_name: proxy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ${caddyserver}/caddy/Caddyfile:/etc/caddy/Caddyfile
+      - ${caddyserver}/caddy/Caddyfile.d:/etc/caddy/Caddyfile.d:ro
+      - ${caddyserver}/caddy/site:/srv
+      - ${caddyserver}/caddy/data:/data
+      - ${caddyserver}/caddy/config:/config
+      - ${caddyserver}/certbot/cert:/etc/letsencrypt:ro
+    environment:
+      - TZ=Asia/Jakarta
+    networks:
+      proxy:
+        ipv4_address: 10.1.1.254
+
+  proxy-certbot:
+    image: certbot/dns-cloudflare:latest
+    container_name: proxy-certbot
+    restart: always
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+    volumes:
+      - ${caddyserver}/certbot/cert:/etc/letsencrypt:rw
+      - ${caddyserver}/certbot/cloudflare:/certbot/cloudflare:ro
+      - /tmp/proxy-certbot:/var/lib/letsencrypt
+    environment:
+      - TZ=Asia/Jakarta
+    networks:
+      - proxy
