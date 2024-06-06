@@ -1,0 +1,30 @@
+secrets:
+  key_pub:
+    file: ${rustdesk}/secrets/id_ed25519.pub
+  key_priv:
+    file: ${rustdesk}/secrets/id_ed25519
+
+services:
+  rustdesk-server:
+    image: rustdesk/rustdesk-server-s6:latest
+    container_name: rustdesk-server 
+    restart: unless-stopped
+    volumes:
+      - ${rustdesk}/data:/data
+    ports:
+      # - 21114:21114 // Uncomment if you have rustdesk pro
+      - 21115:21115
+      - 21116:21116
+      - 21116:21116/udp
+      - 21117:21117
+      - 21118:21118
+      - 21119:21119
+    environment:
+      - "ALWAYS_USE_RELAY=Y"
+      - "KEY=/run/secrets/key_pub"
+      - "RELAY=${domain}:21117"
+      - "ENCRYPTED_ONLY=1"
+      - "TOTAL_BANDWIDTH=${bw}"
+    secrets:
+      - key_pub
+      - key_priv
