@@ -1,0 +1,22 @@
+secrets:
+  pass:
+    file: ${watchtower}/secrets/pass
+
+services:
+  watchtower: # Monitoring Only
+    image: containrrr/watchtower
+    container_name: watchtower
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - TZ=Asia/Jakarta
+      - WATCHTOWER_SCHEDULE=0 0 0 * * *
+      - WATCHTOWER_MONITOR_ONLY=true
+      - WATCHTOWER_NOTIFICATIONS=email
+      - WATCHTOWER_NOTIFICATION_EMAIL_FROM=${from}
+      - WATCHTOWER_NOTIFICATION_EMAIL_TO=${to}
+      - WATCHTOWER_NOTIFICATION_EMAIL_SERVER=${server}
+      - WATCHTOWER_NOTIFICATION_EMAIL_SERVER_PORT=${port}
+      - WATCHTOWER_NOTIFICATION_EMAIL_SERVER_USER=${from}
+      - WATCHTOWER_NOTIFICATION_EMAIL_SERVER_PASSWORD=${pass}
