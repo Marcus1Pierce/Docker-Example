@@ -5,14 +5,6 @@ networks:
 secrets:
   coturn:
     file: ${nextcloud_backend}/secrets/coturn-password
-  janus:
-    file: ${nextcloud_backend}/secrets/janus-password
-  signaling-hashkey:
-    file: ${nextcloud_backend}/secrets/signaling-hashkey-password
-  signaling-blockkey:
-    file: ${nextcloud_backend}/secrets/signaling-blockkey-password
-  backends:
-    file: ${nextcloud_backend}/secret/backends-password
   
 services:
   nextcloud-coturn:
@@ -59,8 +51,6 @@ services:
     restart: unless-stopped
     volumes:
       - ${nextcloud_backend}/janus.conf:/etc/janus.conf
-    secrets:
-      - janus
 
   nextcloud-nats:
     image: nats:2
@@ -82,9 +72,3 @@ services:
       - nextcloud-coturn
     volumes:
       - ${nextcloud_backend}/server.conf:/config/server.conf:ro
-    secrets:
-      - signaling-hashkey
-      - signaling-blockkey
-      - backends
-      - janus-password
-      - coturn-password
