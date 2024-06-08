@@ -6,11 +6,11 @@ networks:
 
 secrets:
   postgres:
-    file: ${nextcloud}/secrets/postgres-password
+    file: ${nextcloud}/secrets/postgres
   postgres-snappymail:
-    file: ${nextcloud}/secrets/postgres-snappymail-password
+    file: ${nextcloud}/secrets/postgres-snappymail
   code:
-    file: ${nextcloud}/secrets/code-password
+    file: ${nextcloud}/secrets/code
 
 services:
   nextcloud-postgres:

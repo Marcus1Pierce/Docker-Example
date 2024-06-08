@@ -4,7 +4,7 @@ networks:
 
 secrets:
   coturn:
-    file: ${nextcloud_backend}/secrets/coturn-password
+    file: ${nextcloud_backend}/secrets/coturn
   
 services:
   nextcloud-coturn:
