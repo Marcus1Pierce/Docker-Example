@@ -48,7 +48,7 @@ services:
       - postgres-snappymail
 
   nextcloud-redis:
-    image: redis:latest
+    image: redis:alpine
     container_name: nextcloud-redis
     hostname: nextcloud-redis
     restart: always
